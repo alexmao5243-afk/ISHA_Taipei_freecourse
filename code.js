@@ -154,7 +154,7 @@ function saveBase64FileToDrive(folder, dataUrl, fileName) {
  */
 function lookupRegistration(name, last5Id) {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.SHEET_NAME);
-  const data = sheet.getDataRange().getValues();
+  const data = sheet.getDataRange().getDisplayValues();
   
   // 遍歷資料 (從第 1 列開始，因為第 0 列是標題)
   for (let i = 1; i < data.length; i++) {
