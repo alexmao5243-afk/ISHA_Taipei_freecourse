@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>臺北市勞動檢查處 - 職訓課程報名網</title>
+ 
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.12/dist/sweetalert2.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+ 
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700;900&display=swap" rel="stylesheet">
+ 
+  <style>
+    /* ================= Neo-brutalism 設計代幣系統 (Design Tokens) ================= */
+    :root {
+      /* 色彩系統 */
+      --neo-cream: #FFFDF5;     /* 復古奶油白底色 */
+      --neo-ink: #000000;       /* 純黑墨水 (用於框線與陰影) */
+      --brand-primary: #016a3f; /* 官方深綠色 */
+      --brand-accent: #faef01;  /* 官方亮黃色 */
+      --neo-violet: #C4B5FD;    /* 輔助紫 (用於裝飾性區塊) */
+     
+      /* 結構系統 */
+      --neo-border: 4px solid var(--neo-ink);
+      --neo-border-thin: 2px solid var(--neo-ink);
+     
+      /* 硬陰影系統 (無模糊) */
+      --neo-shadow-sm: 4px 4px 0px 0px var(--neo-ink);
+      --neo-shadow-md: 8px 8px 0px 0px var(--neo-ink);
+      --neo-shadow-lg: 12px 12px 0px 0px var(--neo-ink);
+      --neo-shadow-hover: 14px 14px 0px 0px var(--neo-ink);
+    }
+
+
+    /* ================= 全域設定 ================= */
+    body {
+      background-color: var(--neo-cream);
+      color: var(--neo-ink);
+      font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-weight: 700; /* 預設使用 Bold */
+      display: flex; flex-direction: column; min-height: 100vh;
+      /* 復古點狀網底 (Halftone pattern) */
+      background-image: radial-gradient(var(--neo-ink) 1.5px, transparent 1.5px);
+      background-size: 32px 32px;
+    }
+   
+    h1, h2, h3, h4, h5, h6 { font-weight: 900; text-transform: uppercase; letter-spacing: -0.05em; }
+
+
+    /* ================= 覆寫 Bootstrap 預設樣式 (去圓角、加黑框) ================= */
+    .card, .form-control, .form-select, .alert {
+      border-radius: 0 !important; /* 銳利直角 */
+      border: var(--neo-border) !important;
+      box-shadow: var(--neo-shadow-sm);
+      color: var(--neo-ink);
+      background-color: white;
+    }
+   
+    /* 輸入框 Focus 狀態 (背景變黃、無光暈) */
+    .form-control:focus, .form-select:focus {
+      background-color: var(--brand-accent);
+      box-shadow: var(--neo-shadow-md) !important;
+      outline: none;
+      box-shadow: none; /* 移除 Bootstrap 預設的藍色光暈 */
+    }
+
+
+    /* ================= SPA 切換動畫 ================= */
+    .page-view { display: none; }
+    .page-view.active { display: block; animation: neoFadeIn 0.2s ease-out; }
+    @keyframes neoFadeIn { from { opacity: 0; transform: translateY(10px) rotate(-1deg); } to { opacity: 1; transform: translateY(0) rotate(0deg); } }
+   
+    /* ================= 導覽列 ================= */
+    .navbar-dashboard {
+      background-color: var(--brand-primary);
+      border-bottom: 5px solid var(--neo-ink);
+      box-shadow: var(--neo-shadow-md);
+    }
+    .nav-logo-main { height: 62px; border: var(--neo-border-thin); background-color: white; padding: 2px; }
+   
+    /* ================= 按鈕按壓物理效果 (Buttons) ================= */
+    .btn {
+      border-radius: 0 !important;
+      border: var(--neo-border) !important;
+      font-weight: 900;
+      text-transform: uppercase;
+      box-shadow: var(--neo-shadow-sm);
+      transition: all 0.1s ease; /* 極快的機械反應 */
+    }
+    .btn:hover { transform: translate(-2px, -2px); box-shadow: var(--neo-shadow-md); }
+    /* 點擊時模擬真實按鈕壓下，陰影消失 */
+    .btn:active { transform: translate(4px, 4px) !important; box-shadow: none !important; }
+   
+    /* 按鈕色彩配色 */
+    .btn-brand-primary { background-color: var(--brand-primary); color: white; }
+    .btn-brand-primary:hover { background-color: #015231; color: white; border-color: var(--neo-ink) !important; }
+    .btn-brand-accent { background-color: var(--brand-accent); color: var(--neo-ink); }
+    .btn-brand-accent:hover { background-color: #e6dc00; color: var(--neo-ink); border-color: var(--neo-ink) !important; }
+    .btn-outline-custom { background-color: white; color: var(--neo-ink); }
+    .btn-outline-custom:hover { background-color: var(--brand-primary); color: white; }
+
+
+    /* ================= 儀表板數據卡片 (Stats Cards) ================= */
+    .stat-card { transition: transform 0.2s; border-radius: 0; box-shadow: var(--neo-shadow-md); }
+    .stat-card:hover { transform: translate(-4px, -4px); box-shadow: var(--neo-shadow-lg); }
+    .stat-number { font-size: 3.5rem; font-weight: 900; color: var(--neo-ink); line-height: 1; text-shadow: 3px 3px 0px var(--brand-accent); }
+    .stat-label { font-size: 1rem; color: var(--neo-ink); font-weight: 900; text-transform: uppercase; border-top: 2px solid var(--neo-ink); padding-top: 8px; margin-top: 8px; }
+   
+    /* ================= 內容卡片與區塊 ================= */
+    .main-content { flex: 1; padding: 40px 0; }
+    .content-card { padding: 30px; margin-bottom: 24px; }
+   
+    /* 文字空心效果 (Text Stroke) */
+    .text-stroke {
+      -webkit-text-stroke: 2px var(--neo-ink);
+      color: white;
+      text-shadow: 4px 4px 0px var(--neo-ink);
+    }
+    .section-title {
+      background-color: var(--neo-ink);
+      color: var(--brand-accent);
+      padding: 10px 15px;
+      display: inline-block;
+      margin-top: 30px; margin-bottom: 25px;
+      transform: rotate(-1deg);
+      box-shadow: 4px 4px 0px 0px var(--brand-primary);
+    }
+    .required-star { color: #FF6B6B; font-weight: 900; }
+   
+    /* ================= 表格設計 ================= */
+    .table-responsive { border: var(--neo-border); box-shadow: var(--neo-shadow-md); background: white; }
+    .table-dashboard { margin-bottom: 0; }
+    .table-dashboard thead { background-color: var(--brand-primary); border-bottom: var(--neo-border); }
+    .table-dashboard th {
+        color: white;             /* 文字改為白色 */
+        background-color: #016a3f; /* 背景維持深綠色 (這樣白色字才看得清楚) */
+        border: 2px solid #000;   /* 加入黑色邊框 */
+        padding: 16px;            /* 保持適當內距 */
+        font-weight: 900;         /* 粗體 */
+      }
+    .table-dashboard th:last-child { border-right: none; }
+    .table-dashboard td { padding: 16px 10px; border-bottom: var(--neo-border-thin); border-right: var(--neo-border-thin); font-weight: 700; vertical-align: middle; }
+    .table-dashboard td:last-child { border-right: none; }
+    .table-dashboard tbody tr:hover { background-color: var(--brand-accent); color: var(--neo-ink); }
+
+
+    /* ================= 特殊區塊 (標籤、上傳區) ================= */
+    .badge { border-radius: 0; border: 2px solid var(--neo-ink); box-shadow: 2px 2px 0px var(--neo-ink); font-weight: 900; padding: 6px 10px; }
+   
+    .course-display-box { background-color: var(--neo-violet); border: var(--neo-border); color: var(--neo-ink); padding: 12px 15px; font-size: 1.1rem; font-weight: 900; box-shadow: var(--neo-shadow-sm); transform: rotate(1deg); }
+   
+    .drop-zone { border: 4px dashed var(--neo-ink); border-radius: 0; padding: 30px 15px; text-align: center; background-color: white; box-shadow: var(--neo-shadow-sm); transition: all 0.2s ease; cursor: pointer; }
+    .drop-zone:hover, .drop-zone.dragover { background-color: var(--brand-accent); transform: translate(-2px, -2px); box-shadow: var(--neo-shadow-md); }
+   
+    .footer { background-color: var(--neo-ink); color: white; padding: 30px 0; text-align: center; border-top: 6px solid var(--brand-accent); }
+    .footer-logo { height: 40px; background-color: white; border: var(--neo-border-thin); padding: 2px; margin: 0 5px; }
+
+
+    /* ================= 圖形化步驟流程圖 (Neo-brutalism 貼紙風格) ================= */
+    .process-flow-container { padding: 20px 0; }
+    .process-step-column { text-align: center; margin-bottom: 20px; }
+    .process-step-card {
+      background: white; border: var(--neo-border); border-radius: 0;
+      box-shadow: var(--neo-shadow-md); padding: 20px;
+      display: flex; flex-direction: column; align-items: center; height: 100%; transition: all 0.2s;
+    }
+    /* 刻意弄亂的貼紙旋轉效果 */
+    .process-step-column:nth-child(1) .process-step-card { transform: rotate(-2deg); background-color: #FFFDF5; }
+    .process-step-column:nth-child(2) .process-step-card { transform: rotate(1deg); background-color: #e6f2ed; }
+    .process-step-column:nth-child(3) .process-step-card { transform: rotate(-1deg); background-color: #fef9c3; }
+    .process-step-column:nth-child(4) .process-step-card { transform: rotate(2deg); background-color: #ede9fe; }
+   
+    .process-step-card:hover { transform: translate(-4px, -4px) rotate(0deg); box-shadow: var(--neo-shadow-lg); z-index: 10; position: relative; }
+   
+    .process-icon-box { position: relative; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; margin-bottom: 15px; border: var(--neo-border); background-color: white; box-shadow: var(--neo-shadow-sm); }
+    .process-icon { font-size: 2.8rem; color: var(--neo-ink); }
+   
+    .process-step-number {
+      position: absolute; top: -15px; right: -15px; width: 36px; height: 36px;
+      background-color: var(--brand-accent); color: var(--neo-ink); border: var(--neo-border);
+      border-radius: 0; /* 放棄圓形，改為強烈的方形角標 */
+      display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 1.2rem;
+      box-shadow: 2px 2px 0px var(--neo-ink);
+    }
+  </style>
+</head>
+<body>
+
+
+<nav class="navbar navbar-dark navbar-dashboard py-2">
+  <div class="container">
+    <a class="navbar-brand d-flex align-items-center" href="#" onclick="switchPage('homeView'); return false;">
+      <img src="https://i.meee.com.tw/9nt4ZSB.png" alt="臺北市勞動檢查處" class="nav-logo-main">
+      <span class="ms-3 fw-bold" style="font-size: 1.8rem; color: var(--brand-accent);">115年度</span>
+      <span class="ms-2 fw-bold" style="font-size: 1.2rem; color: white;">臺北市勞檢處 職安衛免費訓練</span>
+    </a>
+    <div class="d-flex align-items-center gap-3">
+      <button onclick="switchPage('classView')" class="btn btn-outline-custom btn-sm px-3 py-2">開課清單</button>
+      <button onclick="switchPage('registerView')" class="btn btn-brand-accent btn-sm px-4 py-2">立即報名</button>
+      <button onclick="switchPage('lookupView')" class="btn btn-outline-light border-0 fw-bold">報名查詢</button>
+    </div>
+  </div>
+</nav>
+
+
+<div id="homeView" class="page-view active">
+  <div class="container main-content">
+   
+    <div class="row g-4 mb-5">
+      <div class="col-md-6">
+        <div class="card stat-card p-4" style="background-color: var(--brand-accent);">
+          <div class="d-flex align-items-center justify-content-between">
+            <div>
+              <div class="stat-number" id="availableSessionsCount">0</div>
+              <div class="stat-label">目前有空位場次數</div>
+            </div>
+            <i class="bi bi-unlock-fill" style="font-size: 3rem; color: var(--neo-ink);"></i>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card stat-card p-4" style="background-color: var(--neo-violet);">
+          <div class="d-flex align-items-center justify-content-between">
+            <div>
+              <div class="stat-number" id="totalSessionsCount">0</div>
+              <div class="stat-label">當期總開課場次</div>
+            </div>
+            <i class="bi bi-card-checklist" style="font-size: 3rem; color: var(--neo-ink);"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+<div class="d-grid mb-5">
+      <button onclick="switchPage('classView')" class="btn btn-brand-primary btn-lg py-4 fs-3 fw-black">
+        ➡️➡️ 進入選課系統開始報名！
+      </button>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-md-8">
+        <div class="card content-card mb-4">
+          <h2 class="text-brand-primary fw-bold mb-3" style="text-shadow: 2px 2px 0px var(--brand-accent);">勞檢處免費課程基本介紹</h2>
+          <p class="mb-0 fs-5 fw-bold">為提升職場安全衛生水準，預防職業災害發生，本專案由臺北市勞動檢查處全額補助，委託專業工安協會辦理：
+            <br><span style="color: #ff3131;">一般業丙種業務主管、營造業丙種業務主管 及 一般安全衛生教育訓練。</span>
+            <br>凡符合資格之勞工皆可免費報名參訓。<br>線上報名 4 步驟、5 分鐘完成！</p>
+        </div>
+        
+        <div class="card content-card">
+          <h2 class="section-title">報名流程</h2>
+          <div class="row g-4 mt-2">
+            <div class="col-md-3 process-step-column">
+              <div class="process-step-card">
+                <div class="process-icon-box"><i class="bi bi-search process-icon"></i><div class="process-step-number">1</div></div>
+                <h4 class="fw-bold">選課</h4>
+                <p class="small text-muted text-center">挑選心儀的課程<br>也可以多加篩選功能</p>
+              </div>
+            </div>
+            <div class="col-md-3 process-step-column">
+              <div class="process-step-card">
+                <div class="process-icon-box"><i class="bi bi-pencil-square process-icon"></i><div class="process-step-number">2</div></div>
+                <h4 class="fw-bold">填單</h4>
+                <p class="small text-muted text-center">依照表格引導<br>完成報名資料輸入</p>
+              </div>
+            </div>
+            <div class="col-md-3 process-step-column">
+              <div class="process-step-card">
+                <div class="process-icon-box"><i class="bi bi-clipboard-check process-icon"></i><div class="process-step-number">3</div></div>
+                <h4 class="fw-bold">審核</h4>
+                <p class="small text-muted text-center">稍等最多五個工作天<br>即可完成報名</p>
+              </div>
+            </div>
+            <div class="col-md-3 process-step-column">
+              <div class="process-step-card">
+                <div class="process-icon-box"><i class="bi bi-mortarboard-fill process-icon"></i><div class="process-step-number">4</div></div>
+                <h4 class="fw-bold">上課</h4>
+                <p class="small text-muted text-center">最後不要忘記<br>來上課呦！</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-md-4">
+        <div class="card content-card text-center mb-4 border-4 border-dark" style="background-color: var(--brand-accent);">
+          <h4 class="fw-bold">📢 系統公告</h4>
+          <p class="small fw-bold">當期臺北職訓中心免費名額熱烈開放中！</p>
+        </div>
+        <div class="card content-card">
+          <h4 class="text-brand-primary fw-bold mb-3" style="text-shadow: 2px 2px 0px var(--brand-accent);">相關連結與資訊</h4>
+
+          <a href="http://www.isha.org.tw/" target="_blank" class="btn btn-outline-custom w-100 mb-3 text-start py-3">🔗 前往工安協會官網</a>
+          <a href="https://sites.google.com/view/taipei-gongan-course/" target="_blank" class="btn btn-outline-custom w-100 mb-4 text-start py-3">🔗 臺北職訓中心首頁</a>
+          <h6 class="fw-bold mt-3" style="background-color: var(--brand-accent); display: inline-block; padding: 2px 5px; border: 2px solid black;">臺北武昌教室</h6>
+          <p class="mb-1 small fw-bold">☎️ (02) 2311-6262</p>
+          <p class="mb-0 small fw-bold">📍 臺北市中正區武昌街一段18號4樓</p>
+          <h7 class="fw-bold mt-4" style="background-color: var(--brand-accent); display: inline-block; padding: 2px 5px; border: 2px solid black;">臺北忠孝教室</h7>
+          <p class="mb-1 small fw-bold">☎️ (02) 2370-2151</p>
+          <p class="mb-1 small fw-bold">📍 100臺北市中正區忠孝西路一段33號9樓</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="classView" class="page-view">
+  <div class="container main-content">
+    <div class="card content-card">
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+        <h2 class="fw-bold mb-0" style="text-shadow: 2px 2px 0px var(--brand-accent);">當期開課清單</h2>
+        <div class="d-flex flex-wrap gap-2" id="filterButtonGroup">
+          <button class="btn btn-brand-primary filter-btn" onclick="filterClasses('全部', this)">全部</button>
+          <button class="btn btn-outline-custom filter-btn" onclick="filterClasses('丙種業務主管', this)">丙種業務主管</button>
+          <button class="btn btn-outline-custom filter-btn" onclick="filterClasses('營造業丙種業務主管', this)">營造業丙種業務主管</button>
+          <button class="btn btn-outline-custom filter-btn" onclick="filterClasses('一般安全衛生教育訓練', this)">一般安全衛生教育訓練</button>
+        </div>
+      </div>
+
+
+      <div class="table-responsive">
+        <table class="table table-dashboard text-center">
+          <thead>
+            <tr style="color: black;">
+              <th>課程類別</th>
+              <th class="text-start">課程名稱</th>
+              <th>開課日期</th>
+              <th>總名額</th>
+              <th>剩餘名額</th>
+              <th>報名狀態</th>
+            </tr>
+          </thead>
+          <tbody id="classTableBody">
+            <tr><td colspan="6" class="py-5 fs-4">⚡ 數據傳輸中，請稍候... ⚡</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div id="registerView" class="page-view">
+  <div class="container main-content">
+    <div class="card content-card form-container">
+      <div class="text-center mb-5">
+          <h1 class="text-brand-primary fw-bold mb-3" style="text-shadow: 2px 2px 0px var(--brand-accent);">課程報名表</h1>
+      </div>
+     
+      <form id="registrationForm" class="needs-validation" novalidate>
+        <h3 class="section-title">一、報名班級與資格</h3>
+        <div class="row g-4">
+          <div class="col-md-4">
+            <label class="form-label fw-bold fs-5">您選擇的課程</label>
+            <div class="course-display-box" id="selectedCourseDisplay">尚未選擇</div>
+            <input type="hidden" id="hiddenCourseName" required>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-bold fs-5">課程日期</label>
+            <div class="course-display-box" id="selectedDateDisplay" style="background-color: var(--brand-accent);">尚未選擇</div>
+            <input type="hidden" id="hiddenCourseDate" required>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-bold fs-5">基本資格 <span class="required-star">*</span></label>
+            <select class="form-select form-select-lg" id="basicQualification" required>
+              <option value="" selected disabled>請選擇基本資格...</option>
+              <option value="臺北市市民">臺北市市民 (附身分證正反面) </option>
+              <option value="臺北市工作者">臺北市工作者 (附服務證明或在職證明)</option>
+            </select>
+            <div class="invalid-feedback fw-bold">請選擇基本資格。</div>
+          </div>
+          <div class="col-md-12">
+            <label class="form-label fw-bold fs-5">優先錄取資格 <span class="text-muted fw-normal fs-6">(非必填)</span></label>
+            <select class="form-select form-select-lg" id="priorityQualification">
+              <option value="">無</option>
+              <option value="原住民">原住民(附註記有「原住民身分」及「族別」的戶口名簿或戶籍謄本)</option>
+              <option value="中低收入戶">中低收入戶(附中低收入戶證明文件)</option>
+              <option value="畢業兩年內新鮮人">畢業兩年內新鮮人(附畢業證書（需含畢業日期）)</option>
+              <option value="無一定雇主或自營作業而參加職業工會者">無一定雇主或自營作業而參加職業工會者(附職業工會投保證明與切結書)</option>
+              <option value="加入職業工會者">加入職業工會者(附職業工會投保證明)</option>
+              <option value="五十人以下中小企業工作者">五十人以下中小企業工作者(附事業單位近2個月投保人數證明)</option>
+              <option value="臺北市政府機關員工">臺北市政府機關員工(附服務證明或在職證明)</option>
+            </select>
+          </div>
+        </div>
+
+
+        <h3 class="section-title">二、個人基本資料</h3>
+        <div class="row g-4">
+          <div class="col-md-4">
+            <label class="form-label fw-bold fs-5">姓名 <span class="required-star">*</span></label>
+            <input type="text" class="form-control form-control-lg" id="name" required>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-bold fs-5">生理性別 <span class="required-star">*</span></label>
+            <select class="form-select form-select-lg" id="gender" required>
+              <option value="" selected disabled>請選擇...</option>
+              <option value="男">生理男性</option>
+              <option value="女">生理女性</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-bold fs-5">生日 <span class="required-star">*</span></label>
+            <input type="date" class="form-control form-control-lg" id="birthday" required>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-bold fs-5">身分證字號 <span class="required-star">*</span></label>
+            <input type="text" class="form-control form-control-lg" id="idNumber" pattern="^[A-Z][1-2]\d{8}$" placeholder="首字大寫" required>
+            <div class="invalid-feedback fw-bold">請輸入有效之身分證字號。</div>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-bold fs-5">手機號碼 <span class="required-star">*</span></label>
+            <input type="tel" class="form-control form-control-lg" id="phone" pattern="^09\d{8}$" placeholder="09xxxxxxxx" required>
+            <div class="invalid-feedback fw-bold">請輸入有效的手機號碼。</div>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-bold fs-5">電子郵件 <span class="required-star">*</span></label>
+            <input type="email" class="form-control form-control-lg" id="email" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-bold fs-5">最高學歷 <span class="required-star">*</span></label>
+            <select class="form-select form-select-lg" id="education" required>
+              <option value="" selected disabled>請選擇...</option>
+              <option value="國中及以下">國中及以下</option>
+              <option value="高中職">高中職</option>
+              <option value="專科">專科</option>
+              <option value="大學">大學</option>
+              <option value="碩士以上">碩士以上</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-bold fs-5">畢業學校 <span class="required-star">*</span></label>
+            <input type="text" class="form-control form-control-lg" id="school" required>
+          </div>
+          <div class="col-md-2">
+            <label class="form-label fw-bold fs-5">戶籍郵遞區號 <span class="required-star">*</span></label>
+            <input type="text" class="form-control form-control-lg" id="zipCode" required>
+          </div>
+          <div class="col-md-10">
+            <label class="form-label fw-bold fs-5">戶籍地址 <span class="required-star">*</span></label>
+            <input type="text" class="form-control form-control-lg" id="address" required>
+          </div>
+          <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-end mb-2">
+              <label class="form-label fw-bold fs-5 mb-0">聯絡地址 <span class="required-star">*</span></label>
+              <div class="form-check mb-0">
+                <input class="form-check-input" type="checkbox" id="sameAddress" style="border: 2px solid black; border-radius:0;">
+                <label class="form-check-label fw-bold text-muted" for="sameAddress">同戶籍地址</label>
+              </div>
+            </div>
+            <input type="text" class="form-control form-control-lg" id="contactAddress" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-bold fs-5">緊急聯絡人姓名 <span class="required-star">*</span></label>
+            <input type="text" class="form-control form-control-lg" id="emergencyName" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-bold fs-5">緊急聯絡人電話 <span class="required-star">*</span></label>
+            <input type="text" class="form-control form-control-lg" id="emergencyPhone" required>
+          </div>
+        </div>
+
+
+        <h3 class="section-title">三、任職公司資料 <span class="text-muted fw-normal fs-6">(非必填)</span></h3>
+        <div class="row g-4">
+          <div class="col-md-6">
+            <label class="form-label fw-bold fs-5">公司名稱</label>
+            <input type="text" class="form-control form-control-lg" id="companyName">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-bold fs-5">公司統編</label>
+            <input type="text" class="form-control form-control-lg" id="companyTaxId" pattern="^\d{8}$" placeholder="8碼數字">
+          </div>
+          <div class="col-md-12">
+            <label class="form-label fw-bold fs-5">公司地址</label>
+            <input type="text" class="form-control form-control-lg" id="companyAddress">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-bold fs-5">公司電話</label>
+            <input type="text" class="form-control form-control-lg" id="companyPhone">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-bold fs-5">公司教育訓練聯絡人</label>
+            <input type="text" class="form-control form-control-lg" id="companyContact">
+          </div>
+        </div>
+
+
+        <h3 class="section-title">四、證件上傳</h3>
+        <div class="alert mb-4" style="background-color: var(--brand-accent); border: var(--neo-border); border-radius: 0; box-shadow: var(--neo-shadow-sm);" role="alert">
+          <h5 class="fw-bold mb-0">🔒 為維護學員個資安全，證件圖片將安全加密傳輸至協會資料庫。</h5>
+        </div>
+        <div class="row g-4">
+        <div class="col-md-4">
+          <label class="form-label fw-bold fs-5">身分證【正面】上傳 </label>
+          <div class="drop-zone" id="dropZoneFront">
+            <i class="bi bi-cloud-arrow-up-fill fs-1"></i>
+            <p class="mb-2 fw-bold fs-5 mt-2">拖曳圖片或pdf至此處</p>
+            <input class="form-control mt-3" type="file" id="idFront" accept="image/jpeg, image/png, application/pdf">
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label fw-bold fs-5">身分證【反面】上傳 </label>
+          <div class="drop-zone" id="dropZoneBack">
+            <i class="bi bi-cloud-arrow-up-fill fs-1"></i>
+            <p class="mb-2 fw-bold fs-5 mt-2">拖曳圖片或pdf至此處</p>
+            <input class="form-control mt-3" type="file" id="idBack" accept="image/jpeg, image/png, application/pdf">
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label fw-bold fs-5">其他證件上傳 </label>
+          <div class="drop-zone" id="dropZoneOther">
+            <i class="bi bi-cloud-arrow-up-fill fs-1"></i>
+            <p class="mb-2 fw-bold fs-5 mt-2">拖曳圖片或pdf至此處</p>
+            <input class="form-control mt-3" type="file" id="idOther" accept="image/jpeg, image/png, application/pdf">
+          </div>
+        </div>
+      </div>
+
+    <div class="card content-card mb-4" id="privacyAgreementSection" style="border: 4px solid #000;">
+        <h5 class="fw-bold mb-3">📋 個人資料蒐集、處理及利用同意書</h5>
+        <div class="p-3 border border-dark bg-light" style="height: 200px; overflow-y: auto; font-size: 0.9rem; line-height: 1.6; border: 2px solid #000;">
+            <p>為辦理「115 年度臺北市勞動檢查處萎外辦理職業安全衛生教育訓練」之報名作業，臺北市政府勞工局勞動檢查處（下稱本處）將依《個人資料保護法》規定蒐集、處理及利用您之個人資料，相關事項告知如下：</p>
+            <p><strong>一、蒐集目的</strong><br>辦理本訓練之報名甄審、錄取通知、訓練管理、出席紀錄、結訓證書核發、原系統資料匯入及相關業務聯繫。</p>
+            <p><strong>二、蒐集之個人資料類別</strong><br>姓名、性別、出生年月日、國民身分證統一編號、身分證影本、戶籍地址、聯絡地址、聯絡電話、行動電話、電子郵件、學歷、畢業學校、任職公司資訊、緊急聯絡人、優先錄取資格相關證明文件等。</p>
+            <p><strong>三、利用期間、地區、對象及方式</strong><br>期間：蒐集目的存續期間，及保存期限屆滿前。<br>地區：臺北市政府勞工局勞動檢查處及其受託之委託單位辦公處所。<br>對象：本處及受託辦理本訓練之社團法人中華民國工業安全衛生協會。<br>方式：以紙本、電子檔、雲端儲存等方式處理及利用。</p>
+            <p><strong>四、依個人資料保護法第三條規定，您得行使下列權利</strong><br>（一）查詢或請求閱覽。（二）請求製給複製本。（三)請求補充或更正。（四）請求停止蒐集、處理或利用。（五）請求刪除。行使前述權利請聯絡承辦單位辦理，本處將於法定期間內回覆。</p>
+            <p><strong>五、不提供個人資料之影響</strong><br>若您不同意提供必要之個人資料或不同意本同意書之內容，將無法完成報名程序，亦無法錄取本訓練課程。</p>
+            <p><strong>六、資料保存與銷毀</strong><br>本處將於蒐集目的消失或保存期限屆滿後，依《個人資料保護法》規定停止處理、利用並予以銷毀。</p>
+        </div>
+        <div class="form-check mt-3">
+            <input class="form-check-input border-dark" type="checkbox" id="privacyCheckbox" style="width: 1.5em; height: 1.5em; cursor: pointer;">
+            <label class="form-check-label ms-2 fw-bold" for="privacyCheckbox" style="font-size: 1.1rem; cursor: pointer;">
+                我已詳細閱讀並同意本同意書內容，並同意 貴處利用電子郵件發送相關通知及訊息。
+            </label>
+        </div>
+    </div>
+        <div style="border-top: var(--neo-border); margin: 50px 0;"></div>
+        <div class="d-grid gap-2 col-md-8 mx-auto">
+          <button class="btn btn-brand-primary btn-lg py-4 fs-4" type="submit" id="submitBtn">
+            <span class="spinner-border spinner-border-sm" id="loadingSpinner" role="status" aria-hidden="true" style="display:none; width: 1.5rem; height: 1.5rem; border-width: 4px;"></span>
+            <span id="btnText">確認送出報名</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div id="lookupView" class="page-view">
+  <div class="container main-content">
+    <div class="content-card form-container">
+      <h2 class="section-title">報名狀態查詢</h2>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label fw-bold">姓名</label>
+          <input type="text" class="form-control" id="lookupName" placeholder="請輸入姓名">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-bold">身分證後五碼</label>
+          <input type="text" class="form-control" id="lookupId" maxlength="5" placeholder="請輸入身分證後五碼">
+        </div>
+        <div class="d-grid mt-4">
+          <button class="btn btn-brand-primary btn-lg" onclick="executeLookup()">開始查詢</button>
+        </div>
+      </div>
+      <div id="lookupResult" class="mt-4 p-3 border-4 border-dark bg-white" style="display:none;">
+        </div>
+    </div>
+  </div>
+</div>
+
+
+<footer class="footer">
+  <div class="container d-flex flex-column align-items-center">
+    <div class="mb-4 d-flex justify-content-center" style="background-color: white; padding: 10px; border: var(--neo-border); box-shadow: var(--neo-shadow-sm);">
+      <img src="https://i.meee.com.tw/ayzHcjG.png" alt="臺北市勞動檢查處與工安協會logo" class="footer-logo border-0" style="height: 62px;">
+    </div>
+    <h5 class="fw-bold mb-2">主辦單位：臺北市政府勞工局 勞動檢查處</h5>
+    <h6 class="fw-bold" style="color: var(--brand-accent);">委辦單位：中華民國工業安全衛生協會 臺北職訓中心</h6>
+  </div>
+</footer>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.12/dist/sweetalert2.all.min.js"></script>
+
+
+<script>
+  let selectedCourseName = "";
+  let selectedCourseDate = "";
+  let allClassesData = [];
+
+  // 初始化：設定勾選邏輯
+  document.addEventListener('DOMContentLoaded', function() {
+      const privacyCheckbox = document.getElementById('privacyCheckbox');
+      const submitBtn = document.getElementById('submitBtn'); // 確保您的送出按鈕 ID 是 submitBtn
+
+      if (submitBtn) {
+          // 初始狀態鎖定
+          submitBtn.disabled = true;
+          submitBtn.classList.add('opacity-50'); // 視覺上讓它看起來灰灰的
+
+          // 監聽勾選狀態
+          privacyCheckbox.addEventListener('change', function() {
+              if (this.checked) {
+                  submitBtn.disabled = false;
+                  submitBtn.classList.remove('opacity-50');
+              } else {
+                  submitBtn.disabled = true;
+                  submitBtn.classList.add('opacity-50');
+              }
+          });
+      }
+  });
+
+  // ================= 初始載入機制 =================
+  document.addEventListener("DOMContentLoaded", function() {
+    loadClasses();
+  });
+
+
+  // ================= 1. SPA 頁面切換控制 =================
+  function switchPage(pageId, preselectCourse = null, preselectDate = null) {
+    if (pageId === 'registerView' && !preselectCourse && !selectedCourseName) {
+      Swal.fire({
+        icon: 'info',
+        title: '<h2 style="font-weight:900; margin:0;">請選擇課程</h2>',
+        html: '<p style="font-weight:700;">請先至開課清單頁面，點擊您想參加的課程旁邊的「前往報名」按鈕！</p>',
+        confirmButtonColor: '#016a3f',
+        customClass: { popup: 'rounded-0 border border-4 border-dark', confirmButton: 'rounded-0 border border-2 border-dark fw-bold' }
+      });
+      switchPage('classView');
+      return;
+    }
+
+
+    document.querySelectorAll('.page-view').forEach(view => view.classList.remove('active'));
+    document.getElementById(pageId).classList.add('active');
+    window.scrollTo(0, 0);
+
+
+    if (pageId === 'registerView' && preselectCourse && preselectDate) {
+      selectedCourseName = preselectCourse;
+      selectedCourseDate = preselectDate;
+     
+      document.getElementById('selectedCourseDisplay').innerText = preselectCourse;
+      document.getElementById('hiddenCourseName').value = preselectCourse;
+     
+      document.getElementById('selectedDateDisplay').innerText = preselectDate;
+      document.getElementById('hiddenCourseDate').value = preselectDate;
+    }
+  }
+
+
+  // ================= 2. 課程名額查詢、篩選與數據卡片統計 =================
+  function loadClasses() {
+    const tbody = document.getElementById("classTableBody");
+    tbody.innerHTML = '<tr><td colspan="6" class="py-4">數據載入中，請稍候...</td></tr>';
+    
+    // ✅ 新增：在讀取資料前，顯示轉圈圈效果
+    const spinnerHtml = '<div class="spinner-border text-success" role="status" style="width: 2rem; height: 2rem;"><span class="visually-hidden">Loading...</span></div>';
+    document.getElementById('availableSessionsCount').innerHTML = spinnerHtml;
+    document.getElementById('totalSessionsCount').innerHTML = spinnerHtml;
+
+    resetFilterButtons();
+    google.script.run.withSuccessHandler(function(classes) {
+      allClassesData = classes;
+      renderTable(allClassesData);
+    }).getAvailableClasses();
+  }
+
+
+  function renderTable(classesArray) {
+    const tbody = document.getElementById("classTableBody");
+    tbody.innerHTML = "";
+   
+    const availableCount = classesArray.filter(cls => parseInt(cls.remaining) > 0).length;
+    document.getElementById('availableSessionsCount').innerText = availableCount;
+    document.getElementById('totalSessionsCount').innerText = classesArray.length;
+   
+    if(classesArray.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" class="py-5 fs-5">此分類下目前沒有開放的課程</td></tr>';
+      return;
+    }
+
+
+    classesArray.forEach(cls => {
+      const isFull = cls.remaining <= 0;
+      const btnHtml = isFull
+        ? `<button class="btn btn-secondary btn-sm" disabled style="border-radius:20px; padding: 4px 15px;">已額滿</button>`
+        : `<button onclick="switchPage('registerView', '${cls.name}', '${cls.date}')" class="btn btn-brand-primary btn-sm px-3" style="border-radius:20px; padding: 4px 15px;">前往報名</button>`;
+       
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td><span class="badge" style="background-color: var(--neo-violet); color: var(--neo-ink); font-size:1rem;">${cls.category}</span></td>
+        <td class="text-start fs-5">${cls.name}</td>
+        <td class="text-muted font-monospace">${cls.date}</td>
+        
+        <td><span class="badge" style="background-color: #e9ecef; color: black !important; padding: 5px 10px; font-size: 1rem; border: 1px solid #000;">${cls.total}</span></td>
+        
+        <td class="fs-4 ${isFull ? 'text-danger' : 'text-success'} fw-bold">${cls.remaining}</td>
+        <td>${btnHtml}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+
+  function filterClasses(category, clickedBtn) {
+    const allBtns = document.querySelectorAll('.filter-btn');
+    allBtns.forEach(btn => {
+      btn.classList.remove('btn-brand-primary'); btn.classList.add('btn-outline-custom');
+    });
+    clickedBtn.classList.remove('btn-outline-custom'); clickedBtn.classList.add('btn-brand-primary');
+
+
+    if (category === '全部') { renderTable(allClassesData); }
+    else { renderTable(allClassesData.filter(cls => cls.category === category)); }
+  }
+
+
+  function resetFilterButtons() {
+    const allBtns = document.querySelectorAll('.filter-btn');
+    if(allBtns.length > 0) {
+      allBtns.forEach(btn => {
+        btn.classList.remove('btn-brand-primary'); btn.classList.add('btn-outline-custom');
+      });
+      allBtns[0].classList.remove('btn-outline-custom'); allBtns[0].classList.add('btn-brand-primary');
+    }
+  }
+
+
+  // ================= 3. 報名表單輔助功能 (同戶籍、拖曳上傳) =================
+  const addressInput = document.getElementById('address');
+  const contactAddressInput = document.getElementById('contactAddress');
+  const sameAddressCheckbox = document.getElementById('sameAddress');
+
+
+  sameAddressCheckbox.addEventListener('change', function() {
+    if (this.checked) {
+      contactAddressInput.value = addressInput.value;
+      contactAddressInput.setAttribute('readonly', true);
+      contactAddressInput.style.backgroundColor = '#e9ecef';
+    } else {
+      contactAddressInput.value = ''; contactAddressInput.removeAttribute('readonly'); contactAddressInput.style.backgroundColor = 'white';
+    }
+  });
+  addressInput.addEventListener('input', function() { if (sameAddressCheckbox.checked) contactAddressInput.value = this.value; });
+
+
+  function setupDropZone(dropZoneId, inputId) {
+    const dropZone = document.getElementById(dropZoneId);
+    const fileInput = document.getElementById(inputId);
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+    dropZone.addEventListener('dragleave', (e) => { e.preventDefault(); dropZone.classList.remove('dragover'); });
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault(); dropZone.classList.remove('dragover');
+      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        fileInput.files = e.dataTransfer.files; fileInput.dispatchEvent(new Event('change'));
+      }
+    });
+    dropZone.addEventListener('click', (e) => {
+      if(e.target !== fileInput) fileInput.click();
+    });
+  }
+  setupDropZone('dropZoneFront', 'idFront'); 
+  setupDropZone('dropZoneBack', 'idBack');
+  setupDropZone('dropZoneOther', 'idOther'); // ✅ 新增：初始化第三個欄位
+
+
+  // ================= 4. 表單送出邏輯 =================
+  const form = document.getElementById('registrationForm');
+  const submitBtn = document.getElementById('submitBtn');
+  const loadingSpinner = document.getElementById('loadingSpinner');
+  const btnText = document.getElementById('btnText');
+
+
+  form.addEventListener('submit', async function (event) {
+    event.preventDefault();
+    if (!form.checkValidity()) {
+      event.stopPropagation(); form.classList.add('was-validated');
+      Swal.fire({
+        icon: 'warning',
+        title: '<h2 style="font-weight:900; margin:0;">欄位不完整</h2>',
+        html: '<p style="font-weight:700;">請檢查是否有漏填或格式錯誤的必填欄位！</p>',
+        confirmButtonColor: '#016a3f',
+        customClass: { popup: 'rounded-0 border border-4 border-dark', confirmButton: 'rounded-0 border border-2 border-dark fw-bold' }
+      });
+      return;
+    }
+
+
+    toggleLoading(true);
+    try {
+      const formData = {
+        course: document.getElementById('hiddenCourseName').value,
+        courseDate: document.getElementById('hiddenCourseDate').value,
+        basicQualification: document.getElementById('basicQualification').value,
+        priorityQualification: document.getElementById('priorityQualification').value,
+        name: document.getElementById('name').value,
+        gender: document.getElementById('gender').value,
+        birthday: document.getElementById('birthday').value,
+        idNumber: document.getElementById('idNumber').value,
+        phone: document.getElementById('phone').value,
+        email: document.getElementById('email').value,
+        education: document.getElementById('education').value,
+        school: document.getElementById('school').value,
+        zipCode: document.getElementById('zipCode').value,
+        address: document.getElementById('address').value,
+        contactAddress: document.getElementById('contactAddress').value,
+        emergencyName: document.getElementById('emergencyName').value,
+        emergencyPhone: document.getElementById('emergencyPhone').value,
+        companyName: document.getElementById('companyName').value,
+        companyTaxId: document.getElementById('companyTaxId').value,
+        companyAddress: document.getElementById('companyAddress').value,
+        companyPhone: document.getElementById('companyPhone').value,
+        companyContact: document.getElementById('companyContact').value,
+        idFrontBase64: await fileToBase64(document.getElementById('idFront').files[0]),
+        idBackBase64: await fileToBase64(document.getElementById('idBack').files[0]),
+        idOtherBase64: await fileToBase64(document.getElementById('idOther').files[0])
+      };
+
+
+      google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onFailure).submitRegistration(formData);
+    } catch (error) {
+      onFailure(error);
+    }
+  });
+
+
+  function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+      if (!file) { resolve(null); return; }
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = error => reject(error);
+      reader.readAsDataURL(file);
+    });
+  }
+
+
+  function onSuccess(response) {
+    toggleLoading(false);
+    if (response.success) {
+      Swal.fire({
+        icon: 'success',
+        title: '<h2 style="font-weight:900; margin:0;">報名成功！</h2>',
+        html: `<p style="font-weight:700; font-size:1.1rem;">您的資料已送出審核。</p>
+               <div style="background-color:#faef01; border:2px solid black; padding:10px; margin-top:15px;">
+                 <b>報名編號：</b><br>${response.uid}
+               </div>
+               <p style="font-size:0.9em; margin-top:10px; font-weight:bold;">請妥善保存此編號以供後續查詢。</p>`,
+        confirmButtonColor: '#016a3f', allowOutsideClick: false,
+        customClass: { popup: 'rounded-0 border border-4 border-dark', confirmButton: 'rounded-0 border border-2 border-dark fw-bold' }
+      }).then((result) => {
+        if (result.isConfirmed) {
+          form.reset();
+          form.classList.remove('was-validated');
+          sameAddressCheckbox.dispatchEvent(new Event('change'));
+          selectedCourseName = ""; selectedCourseDate = "";
+          document.getElementById('hiddenCourseName').value = "";
+          document.getElementById('hiddenCourseDate').value = "";
+          document.getElementById('selectedCourseDisplay').innerText = "尚未選擇";
+          document.getElementById('selectedDateDisplay').innerText = "尚未選擇";
+          switchPage('homeView');
+        }
+      });
+    } else {
+      onFailure({ message: response.message });
+    }
+  }
+
+
+  function onFailure(error) {
+    toggleLoading(false);
+    Swal.fire({
+      icon: 'error',
+      title: '<h2 style="font-weight:900; margin:0;">系統發生錯誤</h2>',
+      html: `<p style="font-weight:700;">${error.message || '無法連線，請稍後再試。'}</p>`,
+      confirmButtonColor: '#016a3f',
+      customClass: { popup: 'rounded-0 border border-4 border-dark', confirmButton: 'rounded-0 border border-2 border-dark fw-bold' }
+    });
+  }
+
+
+  function toggleLoading(isLoading) {
+    submitBtn.disabled = isLoading;
+    loadingSpinner.style.display = isLoading ? 'inline-block' : 'none';
+    btnText.innerText = isLoading ? '資料加密傳送中...' : '確認送出報名';
+  }
+
+  function executeLookup() {
+  const name = document.getElementById('lookupName').value;
+  const last5Id = document.getElementById('lookupId').value;
+  const resultDiv = document.getElementById('lookupResult');
+
+  if (!name || !last5Id) {
+    Swal.fire('提醒', '請輸入姓名與身分證後五碼', 'warning');
+    return;
+  }
+
+  resultDiv.style.display = 'block';
+  resultDiv.innerHTML = '查詢中...';
+
+  google.script.run.withSuccessHandler(function(res) {
+    if (res.success) {
+      resultDiv.innerHTML = `
+        <div class="alert alert-success fw-bold">查詢結果：</div>
+        <ul class="list-group list-group-flush">
+          <li class="list-group-item"><strong>審核狀態：</strong>${res.data.status}</li>
+          <li class="list-group-item"><strong>報名課程：</strong>${res.data.course}</li>
+          <li class="list-group-item"><strong>課程日期：</strong>${res.data.date}</li>
+        </ul>
+      `;
+    } else {
+      resultDiv.innerHTML = `<div class="alert alert-danger fw-bold">${res.message}</div>`;
+    }
+  }).lookupRegistration(name, last5Id);
+  } 
+</script>
+
+
+</body>
+</html>
+
+
+
+
+
