@@ -11,9 +11,34 @@ const CONFIG = {
  * 1. 載入唯一的 SPA 母網頁
  */
 function doGet(e) {
-  return HtmlService.createHtmlOutputFromFile('index')
-      .setTitle('臺北市勞動檢查處 - 職訓課程報名網')
-      .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+  const action = e.parameter.action;
+
+  if (action === 'getClasses') {
+    const result = getAvailableClasses();
+    return ContentService
+      .createTextOutput(JSON.stringify(result))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  if (action === 'lookup') {
+    const result = lookupRegistration(e.parameter.name, e.parameter.last5Id);
+    return ContentService
+      .createTextOutput(JSON.stringify(result))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  // ✅ 補上 fallback：無 action 參數時回傳提示，避免「未傳回任何值」錯誤
+  return ContentService
+    .createTextOutput(JSON.stringify({ status: 'ok', message: 'API is running.' }))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function doPost(e) {
+  const formData = JSON.parse(e.postData.contents);
+  const result = submitRegistration(formData);
+  return ContentService
+    .createTextOutput(JSON.stringify(result))
+    .setMimeType(ContentService.MimeType.JSON);
 }
 
 /**
