@@ -91,7 +91,7 @@ function submitRegistration(formData) {
       timestamp,                    // B: 報名時間
       status,                       // C: 審核狀態
       formData.course,              // D: 報名課程
-      formData.courseDate,          // E: 課程日期 (新欄位)
+      String(formData.courseDate),  // E: 課程日期，強制存為文字
       formData.basicQualification,  // F: 基本資格
       formData.priorityQualification || "", // G: 優先錄取資格
       formData.name,                // H: 姓名
@@ -154,22 +154,27 @@ function saveBase64FileToDrive(folder, dataUrl, fileName) {
  */
 function lookupRegistration(name, last5Id) {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.SHEET_NAME);
-  const data = sheet.getDataRange().getDisplayValues();
-  
-  // 遍歷資料 (從第 1 列開始，因為第 0 列是標題)
+  const data = sheet.getDataRange().getValues();
+
   for (let i = 1; i < data.length; i++) {
-    let rowName = data[i][7];   // H 欄：姓名
-    let rowId = String(data[i][10]); // K 欄：身分證字號
-    
-    // 檢查姓名是否符合，且身分證字號結尾是否包含輸入的後五碼
+    let rowName = data[i][7];
+    let rowId = String(data[i][10]);
+
     if (rowName === name && rowId.slice(-5) === last5Id) {
-      return { 
-        success: true, 
-        data: { 
-          status: data[i][2], // C 欄：狀態
-          course: data[i][3], // D 欄：課程
-          date: data[i][4]    // E 欄：日期
-        } 
+      
+      // ✅ 如果是 Date 物件就格式化，否則直接用原始值
+      let dateVal = data[i][4];
+      if (dateVal instanceof Date) {
+        dateVal = Utilities.formatDate(dateVal, Session.getScriptTimeZone(), "yyyy/MM/dd");
+      }
+
+      return {
+        success: true,
+        data: {
+          status: data[i][2],
+          course: data[i][3],
+          date: dateVal
+        }
       };
     }
   }
